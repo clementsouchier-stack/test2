@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bridge Share Panel — Full Prototype Bridge Palette</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2F43DE;
+      --primary-hover: #4456E1;
+      --primary-soft: #5C6CE5;
+      --primary-line: #A0AFF2;
+      --primary-bg: #E0E3FA;
+      --line: #E7E7E9;
+      --bg: #F7F7F8;
+      --soft-bg: #F9F9FB;
+      --panel: #FFFFFF;
+      --text: #232229;
+      --muted: #777580;
+      --soft-line: #E7E7E9;
+      --black: #252428;
+      --blue: #2F43DE;
+      --blue-soft: #E0E3FA;
+      --green: #59D994;
+      --grey-toggle: #E7E7E9;
+      --sidebar: #F7F7F8;
+      --shadow: 0 14px 40px rgba(35, 34, 41, 0.10);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    body.panel-closed .app {
+      grid-template-columns: 112px 1fr 0;
+    }
+
+    body.panel-closed .share-panel {
+      transform: translateX(100%);
+      pointer-events: none;
+    }
+
+    body.panel-closed .top-actions {
+      right: 32px;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 112px 1fr 575px;
+      height: 100vh;
+      width: 100vw;
+      transition: grid-template-columns .24s ease;
+    }
+
+    .sidebar {
+      background: var(--sidebar);
+      border-right: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      gap: 34px;
+      color: #b8b7bd;
+    }
+
+    .brand {
+      width: 64px;
+      height: 64px;
+      border: 2px solid #d2d1d7;
+      border-radius: 17px;
+      background: radial-gradient(circle at 92% 82%, #111 0 30%, transparent 31%), #61f5a4;
+      box-shadow: inset 0 0 0 4px #fff;
+    }
+
+    .round-add {
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      border: 1.5px solid #8d8b95;
+      background: #FFFFFF;
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      color: #24232a;
+      box-shadow: 0 4px 10px rgba(0,0,0,.12);
+    }
+
+    .nav-item {
+      width: 100%;
+      text-align: center;
+      font-size: 15px;
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+    }
+
+    .nav-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      font-size: 25px;
+      color: #c1c0c5;
+    }
+
+    .nav-item.active { color: var(--text); font-weight: 600; }
+    .nav-item.active .nav-icon {
+      background: var(--yellow);
+      color: #fff;
+      border-radius: 8px;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      display: grid;
+      gap: 15px;
+      justify-items: center;
+      width: 100%;
+    }
+
+    .main {
+      background: #FFFFFF;
+      padding: 26px 32px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #85838b;
+      font-size: 18px;
+      margin-bottom: 34px;
+    }
+
+    .folder-icon {
+      width: 30px;
+      height: 26px;
+      background: var(--yellow);
+      border-radius: 5px;
+      position: relative;
+      display: inline-block;
+    }
+    .folder-icon:before {
+      
+      position: absolute;
+      top: 4px;
+      left: 5px;
+      width: 13px;
+      height: 5px;
+      border-radius: 2px;
+      background: #FFFFFF;
+    }
+
+    .hero {
+      height: 315px;
+      border-radius: 17px;
+      background: #000;
+      display: grid;
+      place-items: center;
+      margin-bottom: 25px;
+      overflow: hidden;
+    }
+
+    .k-logo {
+      font-size: 132px;
+      color: #fff;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -16px;
+      transform: scaleX(.85);
+    }
+
+    h1 {
+      font-size: 30px;
+      font-weight: 650;
+      letter-spacing: -.5px;
+      margin-bottom: 14px;
+    }
+
+    .updated {
+      color: #777580;
+      font-size: 14px;
+      margin-bottom: 35px;
+    }
+
+    .description {
+      margin-left: 16px;
+      color: #313038;
+      font-size: 16px;
+      margin-bottom: 58px;
+    }
+
+    .table-header {
+      display: grid;
+      grid-template-columns: 1fr 250px;
+      align-items: center;
+      border-bottom: 1px solid #E7E7E9;
+      padding: 0 14px 15px 14px;
+      font-weight: 700;
+      font-size: 20px;
+    }
+
+    .project-title { display: flex; align-items: center; gap: 10px; }
+    .checkbox {
+      width: 16px; height: 16px; border: 2px solid #c9c8ce; border-radius: 2px;
+      display: inline-block;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 50px 1fr 250px;
+      align-items: center;
+      padding: 12px 14px;
+      font-size: 16px;
+    }
+
+    .folder-small { width: 34px; height: 24px; }
+    .folder-small:before { width: 15px; height: 5px; }
+
+    .top-actions {
+      position: absolute;
+      top: 26px;
+      right: 32px;
+      display: flex;
+      gap: 10px;
+      z-index: 2;
+    }
+
+    .btn-top {
+      height: 46px;
+      padding: 0 22px;
+      border-radius: 4px;
+      border: 1px solid #777580;
+      background: #FFFFFF;
+      font-size: 16px;
+      font-weight: 650;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .btn-top.primary { background: #252428; color: #FFFFFF; border-color: #252428; }
+
+    .share-panel {
+      background: var(--panel);
+      border-left: 1px solid #E7E7E9;
+      box-shadow: -8px 0 26px rgba(0,0,0,.04);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      height: 100vh;
+      overflow: hidden;
+      transition: transform .24s ease;
+    }
+
+    .panel-header {
+      height: 76px;
+      display: grid;
+      grid-template-columns: 42px 1fr 32px;
+      align-items: center;
+      padding: 0 26px;
+      font-size: 20px;
+      font-weight: 650;
+      flex: 0 0 auto;
+    }
+
+    .icon-btn {
+      border: 0;
+      background: transparent;
+      font-size: 28px;
+      color: #222126;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .panel-content {
+      padding: 9px 26px 24px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+      min-height: 0;
+      scrollbar-width: thin;
+      scrollbar-color: #c7c6ce transparent;
+    }
+
+    .panel-content::-webkit-scrollbar { width: 8px; }
+    .panel-content::-webkit-scrollbar-track { background: transparent; }
+    .panel-content::-webkit-scrollbar-thumb { background: #c7c6ce; border-radius: 999px; }
+
+    .intro {
+      font-size: 17px;
+      line-height: 1.35;
+      color: #292830;
+      margin-bottom: 26px;
+    }
+
+    .section-label {
+      font-size: 16px;
+      font-weight: 650;
+      margin: 24px 0 12px;
+    }
+
+    .choice-grid {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .choice-item {
+      display: grid;
+      gap: 8px;
+    }
+
+    .accordion-list { margin-bottom: 28px; }
+
+    .choice-card {
+      min-height: 72px;
+      border: 1px solid #E7E7E9;
+      border-radius: 999px;
+      padding: 9px 10px 9px 12px;
+      display: grid;
+      grid-template-columns: 44px 1fr 38px;
+      gap: 12px;
+      align-items: center;
+      cursor: pointer;
+      background: #FFFFFF;
+      box-shadow: 0 1px 0 rgba(20, 20, 28, .03);
+      transition: border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+
+    .choice-card:hover {
+      border-color: #b8b6c0;
+      background: #F9F9FB;
+      box-shadow: 0 6px 18px rgba(22, 22, 28, .06);
+    }
+
+    .choice-card.open {
+      border-color: #4456E1;
+      background: #FFFFFF;
+      box-shadow: 0 8px 22px rgba(37, 36, 40, .06);
+      position: relative;
+    }
+
+    
+
+    .choice-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #F7F7F8;
+      color: var(--blue);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      transition: background .16s ease, color .16s ease;
+    }
+
+    .choice-card.open .choice-icon {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .choice-title {
+      font-size: 16px;
+      font-weight: 680;
+      margin-bottom: 3px;
+      letter-spacing: -.1px;
+    }
+
+    .choice-copy {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.25;
+    }
+
+    .arrow {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #F7F7F8;
+      color: #8f8d96;
+      font-size: 18px;
+      display: grid;
+      place-items: center;
+      transition: transform .16s ease, color .16s ease, background .16s ease;
+    }
+
+    .choice-card.open .arrow {
+      transform: rotate(180deg);
+      color: var(--blue);
+      background: #FFFFFF;
+    }
+
+    .mini-panel {
+      border: 1px solid #E7E7E9;
+      border-radius: 18px;
+      padding: 18px;
+      margin: 0 4px 4px;
+      background: #FFFFFF;
+      box-shadow: 0 10px 26px rgba(20, 20, 28, .06);
+      display: none;
+    }
+
+    .mini-panel.show {
+      display: block;
+      animation: panelReveal .18s ease both;
+    }
+
+    @keyframes panelReveal {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+    .tab {
+      min-height: 52px;
+      border: 1px solid var(--line);
+      background: #FFFFFF;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 650;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .tab.active { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); }
+
+    .field-label { display: block; font-size: 14px; font-weight: 650; margin: 14px 0 8px; }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #E7E7E9;
+      border-radius: 5px;
+      min-height: 46px;
+      padding: 0 13px;
+      font-size: 15px;
+      color: #2b2931;
+      background: #FFFFFF;
+      font-family: inherit;
+    }
+
+    textarea { padding: 12px 13px; min-height: 78px; resize: none; }
+
+    .hint { color: var(--muted); font-size: 13.5px; line-height: 1.35; margin: 4px 0 12px; }
+
+    .settings-list { display: grid; gap: 13px; margin-top: 12px; }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      font-size: 15.5px;
+      min-height: 26px;
+    }
+
+    .toggle {
+      width: 39px;
+      height: 24px;
+      border-radius: 999px;
+      background: #59D994;
+      position: relative;
+      flex: 0 0 auto;
+      transition: all .18s ease;
+    }
+
+    .toggle:after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      right: 4px;
+      top: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.12);
+    }
+
+    .toggle.off {
+      background: #D8DADF;
+    }
+
+    .toggle.off:after {
+      left: 4px;
+      right: auto;
+    }
+    .toggle:after {
+      
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      right: 4px; top: 4px;
+    }
+    .toggle.off { background: var(--grey-toggle); }
+    .toggle.off:after { left: 4px; right: auto; }
+
+    .primary-wide {
+      width: 100%;
+      height: 52px;
+      border: 0;
+      border-radius: 4px;
+      background: #252428;
+      color: #FFFFFF;
+      font-size: 17px;
+      font-weight: 650;
+      margin-top: 17px;
+      cursor: pointer;
+    }
+
+    .embed-preview {
+      border: 1px solid #E7E7E9;
+      border-radius: 8px;
+      padding: 14px;
+      background: #F9F9FB;
+      margin-top: 13px;
+    }
+
+    .player-preview {
+      background: #111;
+      color: #fff;
+      border-radius: 7px;
+      padding: 13px;
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .play-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      color: #111;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+    }
+
+    .code-box {
+      border: 1px solid #E7E7E9;
+      border-radius: 5px;
+      background: #F9F9FB;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      color: #4a4850;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .subtle-divider { height: 1px; background: #E7E7E9; margin: 24px 0 15px; }
+
+    .active-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .active-header h3 { font-size: 16px; font-weight: 650; }
+    .active-header span { font-size: 13px; color: var(--muted); }
+
+    .share-list { display: grid; gap: 12px; }
+
+    .share-item {
+      display: grid;
+      gap: 8px;
+    }
+
+    .share-row {
+      min-height: 64px;
+      border: 1px solid #E7E7E9;
+      border-radius: 999px;
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr) auto auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 10px 9px 12px;
+      background: #FFFFFF;
+      box-shadow: 0 1px 0 rgba(20, 20, 28, .03);
+      transition: border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease;
+      cursor: pointer;
+    }
+
+    .share-row:hover {
+      border-color: #A0AFF2;
+      background: #F9F9FB;
+      box-shadow: 0 7px 18px rgba(20, 20, 28, .06);
+    }
+
+    .share-item.open .share-row {
+      border-color: #4456E1;
+      background: #FFFFFF;
+      box-shadow: 0 8px 22px rgba(37, 36, 40, .06);
+      position: relative;
+    }
+
+    
+
+    .type-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #F7F7F8;
+      color: var(--blue);
+      font-size: 17px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .share-item.open .type-icon { background: var(--blue); color: #fff; }
+    .share-name { font-size: 15.5px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .share-meta { font-size: 12.5px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .small-btn {
+      height: 36px;
+      border: 1px solid #E7E7E9;
+      background: #FFFFFF;
+      color: #232229;
+      border-radius: 999px;
+      padding: 0 12px;
+      font-size: 13.5px;
+      font-weight: 650;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .edit-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid #E7E7E9;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #FFFFFF;
+      color: #232229;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, color .16s ease, background .16s ease;
+    }
+
+    .share-row:hover .edit-btn {
+      border-color: #A0AFF2;
+      color: var(--blue);
+      background: #F9F9FB;
+    }
+
+    .share-item.open .edit-btn { border-color: var(--blue); color: var(--blue); transform: rotate(-8deg); }
+
+    .edit-panel {
+      border: 1px solid #E7E7E9;
+      border-radius: 18px;
+      padding: 18px;
+      margin: 0 4px 4px;
+      background: #FFFFFF;
+      box-shadow: 0 10px 26px rgba(20, 20, 28, .06);
+      display: none;
+    }
+
+    .share-item.open .edit-panel {
+      display: block;
+      animation: panelReveal .18s ease both;
+    }
+
+    .edit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .secondary-btn {
+      height: 42px;
+      border: 0;
+      background: transparent;
+      color: #232229;
+      padding: 0 10px;
+      font-size: 15px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .resend-btn {
+      height: 42px;
+      border: 1px solid #E7E7E9;
+      background: #FFFFFF;
+      color: #232229;
+      border-radius: 999px;
+      padding: 0 16px;
+      font-size: 15px;
+      font-weight: 650;
+      cursor: pointer;
+      margin-right: auto;
+    }
+
+    .save-btn {
+      height: 42px;
+      border: 0;
+      background: #252428;
+      color: #fff;
+      border-radius: 999px;
+      padding: 0 20px;
+      font-size: 15px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .footer {
+      height: 66px;
+      border-top: 1px solid var(--soft-line);
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 24px;
+      padding: 0 26px;
+      background: #FFFFFF;
+      flex: 0 0 auto;
+    }
+
+    .footer button {
+      border: 0;
+      background: transparent;
+      color: #1f1e24;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .chat {
+      position: fixed;
+      right: 20px;
+      bottom: 18px;
+      width: 72px;
+      height: 72px;
+      background: #F9F9FB;
+      border-radius: 50%;
+      box-shadow: var(--shadow);
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      color: #26304f;
+    }
+
+    .badge {
+      position: absolute;
+      top: 3px;
+      right: 2px;
+      background: #ff5a7f;
+      color: #FFFFFF;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      font-size: 11px;
+      display: grid;
+      place-items: center;
+      border: 1px solid white;
+    }
+
+
+    .choice-card:focus-visible,
+    .share-row:focus-visible,
+    .small-btn:focus-visible,
+    .edit-btn:focus-visible,
+    .primary-wide:focus-visible,
+    .save-btn:focus-visible,
+    .resend-btn:focus-visible {
+      outline: 3px solid var(--primary-bg);
+      outline-offset: 2px;
+    }
+
+    .primary-wide:hover,
+    .save-btn:hover,
+    .btn-top.primary:hover {
+      background: #252428;
+      opacity: .92;
+    }
+
+    .small-btn:hover,
+    .resend-btn:hover,
+    .edit-btn:hover {
+      border-color: var(--primary-line);
+      background: var(--soft-bg);
+    }
+
+
+    .choice-card.open + .mini-panel.show,
+    .share-item.open .edit-panel {
+      border-top-color: #E7E7E9;
+      background: #FFFFFF;
+    }
+
+    .choice-card.open .arrow,
+    .share-item.open .row-chevron {
+      color: #4456E1;
+      font-weight: 700;
+    }
+
+
+    .choice-card.open .choice-title,
+    .share-item.open .share-name {
+      color: #252428;
+    }
+
+    .choice-card.open .choice-icon,
+    .share-item.open .type-icon {
+      color: #4456E1;
+      background: #F9F9FB;
+    }
+
+    @media (max-width: 1100px) {
+      .app { grid-template-columns: 84px 1fr; }
+      .share-panel {
+        position: fixed;
+        top: 0; right: 0; bottom: 0;
+        width: min(575px, 100vw);
+        z-index: 3;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"></div>
+      <div class="round-add">+</div>
+      <div class="nav-item"><div class="nav-icon">♫</div><div>Library</div></div>
+      <div class="nav-item active"><div class="nav-icon">▰</div><div>Projects</div></div>
+      <div class="nav-item"><div class="nav-icon">⌯</div><div>Shared</div></div>
+      <div class="nav-item"><div class="nav-icon">▱</div><div>Received</div></div>
+      <div class="nav-item"><div class="nav-icon">◔</div><div>Analytics</div></div>
+      <div class="sidebar-bottom">
+        <div class="nav-icon" style="background:#2F43DE;color:#2F43DE;border-radius:50%;width:25px;height:25px;box-shadow:0 0 18px rgba(45,76,255,.55)">●</div>
+        <div style="display:flex;gap:16px;font-size:23px;color:#75737d"><span>⚙</span><span>♙</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="top-actions">
+        <button class="btn-top primary" id="openShare">⌯ Share</button>
+        <button class="btn-top">↗ Activity</button>
+      </div>
+
+      <div class="breadcrumb"><span class="folder-icon"></span><span>Projects /</span><strong style="color:#28272d">TEST ALTER-K</strong></div>
+      <div class="hero"><div class="k-logo">K</div></div>
+      <h1>TEST ALTER-K</h1>
+      <div class="updated">Updated 2 days ago</div>
+      <div class="description">Click to add a description...</div>
+
+      <div class="table-header">
+        <div class="project-title"><span class="checkbox"></span> Projects (2)</div>
+        <div>Last Update</div>
+      </div>
+      <div class="row">
+        <div><span class="checkbox"></span> &nbsp; 1</div>
+        <div style="display:flex;align-items:center;gap:12px"><span class="folder-icon folder-small"></span> ALTERK - Test la - 22 04 2026</div>
+        <div>28 avril 2026<br><span style="font-size:13px;color:#777580">Clement Souchier</span></div>
+      </div>
+      <div class="row">
+        <div><span class="checkbox"></span> &nbsp; 2</div>
+        <div style="display:flex;align-items:center;gap:12px"><span class="folder-icon folder-small"></span> LACREME - Test Api - 22 04 2026</div>
+        <div>28 avril 2026<br><span style="font-size:13px;color:#777580">Clement Souchier</span></div>
+      </div>
+    </main>
+
+    <aside class="share-panel">
+      <div class="panel-header">
+        <button class="icon-btn" aria-label="Back">‹</button>
+        <div style="text-align:center">Share project TEST ALTER-K</div>
+        <button class="icon-btn" id="closeShare" aria-label="Close">×</button>
+      </div>
+
+      <div class="panel-content">
+        <p class="intro">Choose how you want to share this project: create a shareable link or send access directly by email.</p>
+
+        <div class="section-label">How do you want to share?</div>
+        <div class="choice-grid accordion-list">
+          <div class="choice-item">
+            <div class="choice-card" data-panel="linkPanel" role="button" tabindex="0" aria-expanded="false" aria-controls="linkPanel">
+              <div class="choice-icon">🔗</div>
+              <div>
+                <div class="choice-title">Share by link</div>
+                <div class="choice-copy">Create a shareable project link for external access.</div>
+              </div>
+              <div class="arrow">⌄</div>
+            </div>
+
+            <div id="linkPanel" class="mini-panel" aria-hidden="true">
+              <label class="field-label">Link name</label>
+              <input placeholder="Enter link name" value="Alter K all" />
+              <div class="settings-list">
+                <div class="setting-row"><span>Streaming</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>MP3 download</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>HQ download (WAV, FLAC...)</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Track information</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Media & documents</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Project description</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Password protection</span><span class="toggle off"></span></div>
+              </div>
+              <button class="primary-wide">Create link</button>
+            </div>
+          </div>
+
+          <div class="choice-item">
+            <div class="choice-card" data-panel="emailPanel" role="button" tabindex="0" aria-expanded="false" aria-controls="emailPanel">
+              <div class="choice-icon">✉️</div>
+              <div>
+                <div class="choice-title">Send by email</div>
+                <div class="choice-copy">Send access directly to selected recipients.</div>
+              </div>
+              <div class="arrow">⌄</div>
+            </div>
+
+            <div id="emailPanel" class="mini-panel" aria-hidden="true">
+              <label class="field-label">Recipients</label>
+              <input placeholder="Enter email addresses, separated by commas" />
+              <label class="field-label">Message</label>
+              <textarea placeholder="Add a short message"></textarea>
+              <div class="settings-list">
+                <div class="setting-row"><span>Streaming</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>MP3 download</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>HQ download (WAV, FLAC...)</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Track information</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Password protection</span><span class="toggle off"></span></div>
+              </div>
+              <button class="primary-wide">Send invites</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="subtle-divider"></div>
+
+        <div class="active-header">
+          <h3>Active shares</h3>
+          <span>3 active</span>
+        </div>
+
+        <div class="share-list">
+          <div class="share-item">
+            <div class="share-row">
+              <div class="type-icon">🔗</div>
+              <div><div class="share-name">Lien Alter k all</div><div class="share-meta">Share link · Streaming, downloads, metadata</div></div>
+              <button class="small-btn">⧉ Copy link</button>
+              <button class="edit-btn" aria-label="Edit share settings" aria-expanded="false">✎</button>
+              <span class="toggle"></span>
+            </div>
+            <div class="edit-panel" aria-hidden="true">
+              <label class="field-label">Link name</label>
+              <input value="Lien Alter k all" />
+              <div class="settings-list">
+                <div class="setting-row"><span>Streaming</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>MP3 download</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>HQ download (WAV, FLAC...)</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Track information</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Media & documents</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Project description</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Password protection</span><span class="toggle off"></span></div>
+              </div>
+              <div class="edit-actions"><button class="secondary-btn close-edit">Cancel</button><button class="save-btn">Save</button></div>
+            </div>
+          </div>
+
+          <div class="share-item">
+            <div class="share-row">
+              <div class="type-icon">✉️</div>
+              <div><div class="share-name">david.baudart@la-cre.me</div><div class="share-meta">Email invite · Active</div></div>
+              <button class="small-btn">⧉ Copy link</button>
+              <button class="edit-btn" aria-label="Edit email invite settings" aria-expanded="false">✎</button>
+              <span class="toggle"></span>
+            </div>
+            <div class="edit-panel" aria-hidden="true">
+              <label class="field-label">Recipients</label>
+              <input value="david.baudart@la-cre.me" />
+              <label class="field-label">Message</label>
+              <textarea placeholder="Add a short message">Here is the project link.</textarea>
+              <div class="settings-list">
+                <div class="setting-row"><span>Streaming</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>MP3 download</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>HQ download (WAV, FLAC...)</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Track information</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Password protection</span><span class="toggle off"></span></div>
+              </div>
+              <div class="edit-actions"><button class="resend-btn">↻ Resend email</button><button class="secondary-btn close-edit">Cancel</button><button class="save-btn">Save</button></div>
+            </div>
+          </div>
+
+          <div class="share-item">
+            <div class="share-row">
+              <div class="type-icon">✉️</div>
+              <div><div class="share-name">clement+light@bridge.audio</div><div class="share-meta">Email invite · Active</div></div>
+              <button class="small-btn">⧉ Copy link</button>
+              <button class="edit-btn" aria-label="Edit email invite settings" aria-expanded="false">✎</button>
+              <span class="toggle"></span>
+            </div>
+            <div class="edit-panel" aria-hidden="true">
+              <label class="field-label">Recipients</label>
+              <input value="clement+light@bridge.audio" />
+              <label class="field-label">Message</label>
+              <textarea placeholder="Add a short message">Here is the project link.</textarea>
+              <div class="settings-list">
+                <div class="setting-row"><span>Streaming</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>MP3 download</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>HQ download (WAV, FLAC...)</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Track information</span><span class="toggle"></span></div>
+                <div class="setting-row"><span>Password protection</span><span class="toggle off"></span></div>
+              </div>
+              <div class="edit-actions"><button class="resend-btn">↻ Resend email</button><button class="secondary-btn close-edit">Cancel</button><button class="save-btn">Save</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <button id="cancelShare">Cancel</button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="chat">▢<span class="badge">1</span></div>
+
+  <script>
+    const openShare = document.getElementById('openShare');
+    const closeShare = document.getElementById('closeShare');
+    const cancelShare = document.getElementById('cancelShare');
+
+    openShare.addEventListener('click', () => {
+      document.body.classList.remove('panel-closed');
+    });
+
+    closeShare.addEventListener('click', () => {
+      document.body.classList.add('panel-closed');
+    });
+
+    cancelShare.addEventListener('click', () => {
+      document.body.classList.add('panel-closed');
+    });
+
+    const cards = document.querySelectorAll('.choice-card');
+    const panels = document.querySelectorAll('.mini-panel');
+
+    function togglePanel(card) {
+      const panel = document.getElementById(card.dataset.panel);
+      const isOpen = card.classList.contains('open');
+
+      cards.forEach(c => {
+        c.classList.remove('open');
+        c.setAttribute('aria-expanded', 'false');
+      });
+      panels.forEach(p => {
+        p.classList.remove('show');
+        p.setAttribute('aria-hidden', 'true');
+      });
+
+      if (!isOpen) {
+        card.classList.add('open');
+        card.setAttribute('aria-expanded', 'true');
+        panel.classList.add('show');
+        panel.setAttribute('aria-hidden', 'false');
+      }
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => togglePanel(card));
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          togglePanel(card);
+        }
+      });
+    });
+
+    const shareItems = document.querySelectorAll('.share-item');
+
+    function closeShareEditors() {
+      shareItems.forEach(item => {
+        item.classList.remove('open');
+        const button = item.querySelector('.edit-btn');
+        const panel = item.querySelector('.edit-panel');
+        if (button) button.setAttribute('aria-expanded', 'false');
+        if (panel) panel.setAttribute('aria-hidden', 'true');
+      });
+    }
+
+    function toggleShareEditor(item) {
+      const button = item.querySelector('.edit-btn');
+      const panel = item.querySelector('.edit-panel');
+      const isOpen = item.classList.contains('open');
+      closeShareEditors();
+      if (!isOpen) {
+        item.classList.add('open');
+        if (button) button.setAttribute('aria-expanded', 'true');
+        if (panel) panel.setAttribute('aria-hidden', 'false');
+      }
+    }
+
+    shareItems.forEach(item => {
+      const row = item.querySelector('.share-row');
+      row.setAttribute('role', 'button');
+      row.setAttribute('tabindex', '0');
+      row.addEventListener('click', () => toggleShareEditor(item));
+      row.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggleShareEditor(item);
+        }
+      });
+    });
+
+    document.querySelectorAll('.small-btn, .toggle, .edit-panel button, .edit-panel input, .edit-panel textarea').forEach(element => {
+      element.addEventListener('click', event => event.stopPropagation());
+    });
+
+    document.querySelectorAll('.close-edit, .save-btn').forEach(button => {
+      button.addEventListener('click', closeShareEditors);
+    });
+
+    document.querySelectorAll('.resend-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const original = button.textContent;
+        button.textContent = '✓ Email resent';
+        window.setTimeout(() => { button.textContent = original; }, 1200);
+      });
+    });
+
+  </script>
+</body>
+</html>
